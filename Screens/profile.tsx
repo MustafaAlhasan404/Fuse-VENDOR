@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Modal, Switch, Alert, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Modal, Switch, Alert } from 'react-native';
 import { useTheme } from '../ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../AppNavigator';
 import tw from 'twrnc';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Redux/store';
+import Feather from 'react-native-vector-icons/Feather';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
 
@@ -66,9 +66,9 @@ const Profile = () => {
 
   const ProfileButton = ({ title, icon, onPress }: { title: string, icon: string, onPress: () => void }) => (
     <TouchableOpacity style={tw`py-3 flex-row items-center`} onPress={onPress}>
-      <Icon name={icon} size={24} color={textColor} style={tw`mr-3`} />
+      <Feather name={icon} size={24} color={textColor} style={tw`mr-3`} />
       <Text style={[tw`text-lg`, { color: textColor }]}>{title}</Text>
-      <Icon name="chevron-right" size={24} color={textColor} style={tw`ml-auto`} />
+      <Feather name="chevron-right" size={24} color={textColor} style={tw`ml-auto`} />
     </TouchableOpacity>
   );
 
@@ -76,7 +76,12 @@ const Profile = () => {
     <View style={[tw`flex-1`, { backgroundColor }]}>
       <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={backgroundColor} />
       <ScrollView contentContainerStyle={tw`flex-grow p-4`}>
-        <Text style={[tw`text-2xl font-bold mb-6`, { color: textColor }]}>Profile</Text>
+        <View style={tw`flex-row items-center mb-6`}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-2`}>
+            <Feather name="arrow-left" size={28} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[tw`text-2xl font-bold`, { color: textColor }]}>Profile</Text>
+        </View>
         
         <View style={tw`items-center mb-6`}>
           <Text style={[tw`text-2xl font-bold mb-1`, { color: textColor }]}>{user?.name}</Text>
@@ -86,14 +91,14 @@ const Profile = () => {
 
         <View style={[tw`mb-6 p-4 rounded-lg`, { backgroundColor: cardBackgroundColor }]}>
           <Text style={[tw`text-xl font-bold mb-3`, { color: textColor }]}>Account</Text>
-          <ProfileButton title="Personal Information" icon="account-circle" onPress={() => setPersonalInfoModalVisible(true)} />
+          <ProfileButton title="Personal Information" icon="user" onPress={() => setPersonalInfoModalVisible(true)} />
         </View>
 
         <View style={[tw`mb-6 p-4 rounded-lg`, { backgroundColor: cardBackgroundColor }]}>
           <Text style={[tw`text-xl font-bold mb-3`, { color: textColor }]}>Settings</Text>
           <View style={tw`py-3 flex-row justify-between items-center`}>
             <View style={tw`flex-row items-center`}>
-              <Icon name="theme-light-dark" size={24} color={textColor} style={tw`mr-3`} />
+              <Feather name="moon" size={24} color={textColor} style={tw`mr-3`} />
               <Text style={[tw`text-lg`, { color: textColor }]}>Dark Theme</Text>
             </View>
             <Switch
@@ -105,7 +110,7 @@ const Profile = () => {
           </View>
           <View style={tw`py-3 flex-row justify-between items-center`}>
             <View style={tw`flex-row items-center`}>
-              <Icon name="fingerprint" size={24} color={textColor} style={tw`mr-3`} />
+              <Feather name="fingerprint" size={24} color={textColor} style={tw`mr-3`} />
               <Text style={[tw`text-lg`, { color: textColor }]}>Biometric Login</Text>
             </View>
             <Switch
@@ -137,7 +142,7 @@ const Profile = () => {
               style={tw`absolute top-2 right-2 p-2`}
               onPress={() => setPersonalInfoModalVisible(false)}
             >
-              <Icon name="close" size={28} color={textColor} />
+              <Feather name="x" size={28} color={textColor} />
             </TouchableOpacity>
             <Text style={[tw`text-2xl font-bold mb-4 mt-4`, { color: textColor }]}>Personal Information</Text>
             <View style={tw`mb-4`}>
