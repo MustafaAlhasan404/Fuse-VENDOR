@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StatusBar, TouchableOpacity, Modal, Platform } from 'react-native';
+import { View, Text, StatusBar, TouchableOpacity, Modal, Platform,SafeAreaView } from 'react-native';
 import QRCodeStyled from 'react-native-qrcode-styled';
 import { useTheme } from '../ThemeContext';
 import tw from 'twrnc';
@@ -16,7 +16,7 @@ import axios from 'axios';
 import baseUrl from '../baseUrl';
 
 const Receive: React.FC<{ route: any }> = ({ route }) => {
-const { id } = route.params;
+    const { id } = route.params;
 
     const { theme } = useTheme();
     const [accountDetailsModalVisible, setAccountDetailsModalVisible] = useState<boolean>(false);
@@ -138,6 +138,7 @@ const { id } = route.params;
     
 
     return (
+        <SafeAreaView style={{ flex: 1, backgroundColor }}>
         <View style={[tw`flex-1`, { backgroundColor }]}>
             <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={backgroundColor} />
             <View style={tw`flex-1 p-2`}>
@@ -211,6 +212,7 @@ const { id } = route.params;
                 </View>
             </Modal>
         </View >
+        </SafeAreaView>
     );
 };
 

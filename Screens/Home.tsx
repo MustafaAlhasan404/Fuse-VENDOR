@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, BackHandler, ScrollView, StatusBar, TouchableOpacity, FlatList, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, BackHandler, ScrollView, StatusBar, TouchableOpacity, FlatList, Dimensions, RefreshControl,SafeAreaView } from 'react-native';
 import tw from 'twrnc';
 import { useTheme } from '../ThemeContext';
 import Icon from 'react-native-vector-icons/Feather';
@@ -113,9 +113,10 @@ const Home = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <View style={[tw`flex-1`, { backgroundColor }]}>
+    <SafeAreaView style={[tw`flex-1`, { backgroundColor }]}> 
       <StatusBar barStyle={statusBarStyle} backgroundColor={backgroundColor} />
       <ScrollView
+       contentContainerStyle={tw`pb-20`}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -216,7 +217,7 @@ const Home = ({ navigation }: { navigation: any }) => {
           </View>
         </View>
       </ScrollView>
-    </View>
+      </SafeAreaView> 
   );
 };
 

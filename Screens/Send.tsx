@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StatusBar, TouchableOpacity, Modal, ActivityIndicator, Keyboard, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StatusBar, TouchableOpacity, Modal, ActivityIndicator, Keyboard, Alert,SafeAreaView } from 'react-native';
 import {
     Platform,
     TextInputProps,
@@ -11,8 +11,7 @@ import tw from 'twrnc';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../AppNavigator';
-import { Input } from "@rneui/base";
-import { RNCamera, BarCodeReadEvent } from 'react-native-camera';
+import { CameraView,Camera,BarcodeScanningResult } from 'expo-camera';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Asset } from 'expo-asset';
@@ -29,6 +28,7 @@ const Send: React.FC = () => {
     const [number, onChangeNumber] = React.useState<boolean>();
     const [accNumberErrorMsg, setAccNumberErrorMsg] = useState<string>("Ayyy");
     const [logoBase64, setLogoBase64] = useState<string>('');
+    const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
     const jwt: string = useSelector((state: any) => state.auth.jwt);
     const aesKey: string = useSelector((state: any) => state.auth.aesKey);
@@ -87,6 +87,8 @@ const Send: React.FC = () => {
     const linkColor = theme === 'light' ? '#028174' : '#92DE8B';
     const cardBackgroundColor = theme === 'light' ? '#F0F0F0' : '#424242';
 
+    const cameraRef = useRef<React.ComponentType<any>>(null);
+
     useEffect(() => {
         const loadLogo = async () => {
             const logoAsset = Asset.fromModule(require('../assets/FuseLogo.png'));
@@ -99,6 +101,21 @@ const Send: React.FC = () => {
 
         loadLogo();
     }, []);
+
+    useEffect(() => {
+        (async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync();
+            setHasPermission(status === 'granted');
+        })();
+    }, []);
+    
+
+    const handleBarCodeScanned = ({ type, data }: BarcodeScanningResult) => {
+        setAccountNumber(data);
+        searchForAccount(data);
+        setMessage(data);
+        setAccountDetailsModalVisible(false);
+    };
 
     const CustomButton = ({ title, onPress, iconName }: { title: string, onPress: () => void, iconName: string }) => (
         <TouchableOpacity
@@ -143,13 +160,6 @@ const Send: React.FC = () => {
         setShowAmountInput(false);
         setShowFinalDetails(false);
         setShowCta(true);
-    };
-
-    const handleBarCodeRead = (e: BarCodeReadEvent) => {
-        setAccountNumber(e.data);
-        searchForAccount(e.data);
-        setMessage(e.data);
-        setAccountDetailsModalVisible(false);
     };
 
     const confirmAccount = () => {
@@ -239,6 +249,7 @@ const Send: React.FC = () => {
         await Sharing.shareAsync(newUri);
     };
     return (
+        <SafeAreaView style={{ flex: 1, backgroundColor }}>
         <View style={[tw`flex-1 justify-between`, { backgroundColor }]}>
             <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={backgroundColor} />
             <View style={tw`flex-row items-center mt-4 mx-4 py-2`}>
@@ -511,13 +522,19 @@ const Send: React.FC = () => {
                         </View>
                         {/* Camera */}
                         <View style={tw`h-4/5 w-full`}>
-                            <FillToAspectRatio>
-                                <RNCamera
+                            {hasPermission && (
+                                <CameraView
                                     style={tw`h-full w-full`}
-                                    onBarCodeRead={handleBarCodeRead}
-                                    captureAudio={false}
+                                    onBarcodeScanned={handleBarCodeScanned}
                                 />
-                            </FillToAspectRatio>
+                            )}
+                            {!hasPermission && (
+                                <View style={tw`flex-1 justify-center items-center`}>
+                                    <Text style={[tw`text-lg`, { color: textColor }]}>
+                                        No camera access. Please grant camera permissions to use this feature.
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                         <Text style={[tw`text-sm pt-2`, { color: textColor }]}>
                             Point your camera to an account QR Code to quickly perform your transaction.
@@ -526,82 +543,8 @@ const Send: React.FC = () => {
                 </View>
             </Modal>
         </View >
+        </SafeAreaView>
     );
 };
-
-type LayoutInfo = {
-    width: number,
-    height: number,
-};
-
-type State = {
-    layoutInfo: LayoutInfo | null | undefined,
-};
-
-type Props = {
-    ratio: string,
-    children: React.ReactNode,
-};
-
-class FillToAspectRatio extends React.Component<Props, State> {
-    static defaultProps = {
-        ratio: '4:3',
-    };
-    state = {
-        layoutInfo: null,
-    };
-    handleLayout = ({ nativeEvent: { layout: { width, height } } }: { nativeEvent: { layout: LayoutInfo } }) => {
-        this.setState({
-            layoutInfo: { width, height },
-        });
-    };
-
-    getRatio = () => {
-        const { ratio } = this.props;
-        const [ratioWidth, ratioHeight] = ratio.split(':').map(x => Number(x));
-        return ratioHeight / ratioWidth;
-    };
-
-    render() {
-        const { layoutInfo } = this.state;
-
-        if (!layoutInfo) {
-            return <View key="pre-info" onLayout={this.handleLayout} style={{
-                flex: 1, overflow: 'hidden', position: 'relative'
-            }} />;
-        }
-
-        const { height, width } = layoutInfo;
-        let wrapperWidth;
-        let wrapperHeight;
-        const ratio = this.getRatio();
-        if (ratio * height < width) {
-            wrapperHeight = width / ratio;
-            wrapperWidth = width;
-        } else {
-            wrapperWidth = ratio * height;
-            wrapperHeight = height;
-        }
-        const wrapperPaddingX = (width - wrapperWidth) / 2;
-        const wrapperPaddingY = (height - wrapperHeight) / 2;
-
-        return (
-            <View onLayout={this.handleLayout} style={{
-                flex: 1, overflow: 'hidden', position: 'relative'
-            }}>
-                <View
-                    style={{
-                        width: wrapperWidth,
-                        height: wrapperHeight,
-                        marginLeft: wrapperPaddingX,
-                        marginTop: wrapperPaddingY,
-                    }}
-                >
-                    {this.props.children}
-                </View>
-            </View >
-        );
-    }
-}
 
 export default Send;
